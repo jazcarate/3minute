@@ -104,11 +104,16 @@
                 const deleted = sorting.splice(e.oldIndex, 1);
                 sorting.splice(e.newIndex, 0, deleted[0]);
             },
-            animation: 150,
-            easing: "cubic-bezier(1, 0, 0, 1)",
             handle: ".handle",
         });
     };
+
+    function uiud() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 
     // -------- Framework
     const Hito = {
@@ -142,7 +147,7 @@
         },
         methods: {
             agregar() {
-                this.hitos.push({ mult: 0 })
+                this.hitos.push({ mult: 0, id: uiud() })
             },
             borrar(indiceHito) {
                 this.hitos.splice(indiceHito, 1);
@@ -155,7 +160,7 @@
             }
         },
         template: `<ol v-sortable="hitos" :title="JSON.stringify(hitos, null, 2)">
-            <li v-for="(hito, i) in hitos">
+            <li v-for="(hito, i) in hitos" :key="hito.id">
                 <img src="drag.png" class="handle" alt="Drag"/><hito :v="hito" @borrar="borrar(i)"></hito>
             </li>
         </pl>
