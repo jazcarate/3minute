@@ -130,7 +130,7 @@
                 <hito :v="hito" @borrar="borrar(i)"></hito>
             </li>
         </ul>
-        <button @click="agregar()">Agregar un hito</button>`
+        <button v-if="hitos.length < 10" @click="agregar()">Agregar un hito</button>`
     }).mount('#pav')
 </script>
 
