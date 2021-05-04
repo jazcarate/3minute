@@ -1,6 +1,13 @@
 <!doctype html>
 <html class="no-js" lang="es">
 
+<style>
+    img.handle {
+        cursor: pointer;
+        height: 1em;
+    }
+</style>
+
 <head>
     <meta charset="utf-8">
     <title>Peaks and Valleys</title>
@@ -8,11 +15,12 @@
 </head>
 
 <body>
-<div id='pav'></div>
-<canvas id="canvas" height="678" width="965"></canvas>
+    <div id='pav'></div>
+    <canvas id="canvas" height="678" width="965"></canvas>
 </body>
 
 <script src="https://unpkg.com/vue@next"></script>
+<script src="https://unpkg.com/sortablejs"></script>
 <script>
     function pr(x, event) {
         return new Promise(resolve => x.addEventListener(event, () => resolve(x)));
@@ -61,7 +69,7 @@
         info.forEach(({ mult, año, texto }, i) => {
             var x = startTimeline + i * timelineInterval;
 
-            ctx.lineTo(x, startHeight - (mult/100) * peakDelta);
+            ctx.lineTo(x, startHeight - (mult / 100) * peakDelta);
 
             if (año) {
                 ctx.font = "bold 12px Arial";
@@ -87,21 +95,36 @@
     pintar(hitos);
 
 
+    // Addapted from https://macr.ae/article/vue-sortable
+    function sortable(el, binding) {
+        const sorting = binding.value;
+
+        Sortable.create(el, {
+            onUpdate: (e) => {
+                const deleted = sorting.splice(e.oldIndex, 1);
+                sorting.splice(e.newIndex, 0, deleted[0]);
+            },
+            animation: 150,
+            easing: "cubic-bezier(1, 0, 0, 1)",
+            handle: ".handle",
+        });
+    };
+
     // -------- Framework
     const Hito = {
-        template: `<div>
+        template: `<span>
             <input type="range" min="-100" max="100" v-model="v.mult" class="slider">
 
             <input v-model="v.año" placeholder="año">
             <input v-model="v.texto" placeholder="Hito">
             <button @click="$emit('borrar')">🗑️</button>
-        </div>`,
+        </span>`,
         props: {
             v: Object
         }
     };
 
-    Vue.createApp({
+    const app = Vue.createApp({
         data() {
             return { hitos }
         },
@@ -119,17 +142,23 @@
         },
         methods: {
             agregar() {
-                this.hitos.push({mult: 0})
+                this.hitos.push({ mult: 0 })
             },
-            borrar(indiceHito){
+            borrar(indiceHito) {
                 this.hitos.splice(indiceHito, 1);
             }
         },
-        template: `<ul :title="JSON.stringify(hitos, null, 2)">
+        directives: {
+            sortable: {
+                updated: sortable,
+                mounted: sortable,
+            }
+        },
+        template: `<ol v-sortable="hitos" :title="JSON.stringify(hitos, null, 2)">
             <li v-for="(hito, i) in hitos">
-                <hito :v="hito" @borrar="borrar(i)"></hito>
+                <img src="drag.png" class="handle" alt="Drag"/><hito :v="hito" @borrar="borrar(i)"></hito>
             </li>
-        </ul>
+        </pl>
         <button v-if="hitos.length < 10" @click="agregar()">Agregar un hito</button>`
     }).mount('#pav')
 </script>
